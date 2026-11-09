@@ -1,0 +1,4 @@
+__pycache__/
+*.py[cod]
+phishguard.db
+.DS_Store
