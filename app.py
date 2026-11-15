@@ -2,7 +2,7 @@
 import streamlit as st
 from datetime import datetime
 from html import escape
-from detector import analyze_email
+from advanced_detector import analyze_email
 
 # ---------------- PAGE CONFIG ----------------
 
@@ -373,47 +373,75 @@ if page == "Dashboard":
 
 # ---------------- EMAIL SCANNER ----------------
 
+
+# ---------------- EMAIL SCANNER ----------------
+
 elif page == "Email Scanner":
 
     st.markdown("""
     <div class="hero">
-        <div class="section-label">EMAIL ANALYSIS</div>
+        <div class="section-label">ADVANCED EMAIL ANALYSIS</div>
         <div class="hero-title">Scan your email.</div>
         <div class="hero-subtitle">
-            Check suspicious messages for common phishing warning signs.
+            Analyze sender identity, subject, body and email headers.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("### Email content")
+    st.markdown("### Email details")
 
-    email = st.text_area(
-        "Paste the email you want to analyze:",
-        height=230,
-        placeholder=(
-            "Dear customer,\n\n"
-            "Your account has been suspended. "
-            "Please verify your details immediately..."
-        ),
-        label_visibility="collapsed"
+    sender = st.text_input(
+        "Sender Email Address",
+        placeholder="example@company.com"
     )
 
-    st.caption("Tip: Include the subject and message body for analysis.")
+    subject = st.text_input(
+        "Email Subject",
+        placeholder="Your account requires immediate verification"
+    )
+
+    body = st.text_area(
+        "Email Body",
+        height=200,
+        placeholder="Paste the email message here..."
+    )
+
+    headers = st.text_area(
+        "Email Headers (Optional)",
+        height=120,
+        placeholder="Paste raw email headers here..."
+    )
 
     if st.button("🛡️ Analyze Email", use_container_width=True):
 
-        if not email.strip():
-            st.warning("Please paste an email before analyzing.")
+        if not sender.strip() and not subject.strip() and not body.strip():
+            st.warning("Please enter some email information.")
 
         else:
-            result = analyze_email(email)
+            email_data = {
+                "sender": sender,
+                "subject": subject,
+                "body": body,
+                "headers": headers
+            }
+
+            result = analyze_email(email_data)
+
+            email = (
+                f"From: {sender}\n"
+                f"Subject: {subject}\n\n"
+                f"{body}\n\n"
+                f"Headers:\n{headers}"
+            )
 
             record = {
                 "email": email,
                 "score": result["score"],
                 "risk": result["risk"],
                 "findings": result["findings"],
-                "time": datetime.now().strftime("%d %b %Y, %I:%M %p")
+                "time": datetime.now().strftime(
+                    "%d %b %Y, %I:%M %p"
+                )
             }
 
             st.session_state.history.append(record)
@@ -423,7 +451,6 @@ elif page == "Email Scanner":
         st.divider()
         st.markdown("### Your analysis results")
         show_result(st.session_state.last_result)
-
 
 # ---------------- SCAN HISTORY ----------------
 
